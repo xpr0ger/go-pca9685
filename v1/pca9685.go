@@ -106,10 +106,11 @@ func (p *PCA9685) SetFrequency(clockSpeed uint) error {
 
 	value := byte(prescaler)
 
-	_, err := p.bus.Write([]byte{AddressMode1}) //TODO Error handling
+	_, err := p.bus.Write([]byte{AddressMode1})
 	if err != nil {
 		return errors.Wrap(err, "failed to set address for read")
 	}
+
 	buf := make([]byte, 1)
 	_, err = p.bus.Read(buf)
 	mode1 := buf[0]
@@ -138,7 +139,7 @@ func (p *PCA9685) SetFrequency(clockSpeed uint) error {
 	}
 
 	//Wait for wake up
-	time.Sleep(50000)
+	time.Sleep(2000)
 
 	//Set up mode bit for restert
 	resetMode1 := mode1 | bitMode1Reset | bitMode1AutoIncrement | bitMode1RespondToAllCall
