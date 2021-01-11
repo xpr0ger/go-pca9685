@@ -14,8 +14,11 @@ const (
 	//ClockDeviceHZ is device Clock speed, 25 MHz according to datasheet
 	ClockDeviceHZ = 25_000_000
 
-	//ClockPeriodsFractions is clock period resolution according to datasheet is 12-bit value 0 - 4095
-	ClockPeriodsFractions = 4096
+	//ClockPeriodsFractionsCount is clock period resolution according to datasheet is 12-bit value 0 - 4095
+	ClockPeriodsFractionsCount = 4096
+
+	//ClockPeriodsFractionsMaxValue is clock period resolution according to datasheet is 12-bit value 0 - 4095
+	ClockPeriodsFractionsMaxValue = 0xfff
 
 	//DefaultAddress is default device address to open i2c communication
 	DefaultAddress = byte(0x40)
@@ -96,7 +99,7 @@ func (p *PCA9685) Reset() error {
 //Min value is 25 Hz max value 1526 Hz
 func (p *PCA9685) SetFrequency(clockSpeed uint) error {
 	//Calculating prescale value for given frequency according to datasheet equation
-	prescaler := (float64(ClockDeviceHZ) / float64(ClockPeriodsFractions*clockSpeed)) - 1.0
+	prescaler := (float64(ClockDeviceHZ) / float64(ClockPeriodsFractionsCount*clockSpeed)) - 1.0
 	prescaler = math.RoundToEven(prescaler)
 
 	//Check prescaler compliance
@@ -211,7 +214,7 @@ func (c *Channels) SetOnPeriodDurationWithShift(onShiftMicroseconds, microsecond
 	}
 
 	//Get how load one fraction is lasting
-	periodFractionDuration := periodDuration / float64(ClockPeriodsFractions)
+	periodFractionDuration := periodDuration / float64(ClockPeriodsFractionsMaxValue)
 
 	onFractionNumber := math.RoundToEven(float64(onShiftMicroseconds) / periodFractionDuration)
 	offFractionNumber := math.RoundToEven(float64(onShiftMicroseconds+microseconds) / periodFractionDuration)
@@ -221,12 +224,12 @@ func (c *Channels) SetOnPeriodDurationWithShift(onShiftMicroseconds, microsecond
 
 //SetPeriod set On/Off period in fractions
 func (c *Channels) SetPeriod(on, off uint16) error {
-	if on > ClockPeriodsFractions {
-		return fmt.Errorf("on value cannot be greater then %d", ClockPeriodsFractions)
+	if on > ClockPeriodsFractionsMaxValue {
+		return fmt.Errorf("on value cannot be greater then %d", ClockPeriodsFractionsMaxValue)
 	}
 
-	if off > ClockPeriodsFractions {
-		return fmt.Errorf("off value cannot be greater then %d", ClockPeriodsFractions)
+	if off > ClockPeriodsFractionsMaxValue {
+		return fmt.Errorf("off value cannot be greater then %d", ClockPeriodsFractionsMaxValue)
 	}
 
 	return c.writeOnOffValue(on, off)
